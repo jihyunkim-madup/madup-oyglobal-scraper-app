@@ -156,3 +156,46 @@ def fetch_search(query: str, max_results: int = 100) -> list[dict]:
         page += 1
 
     return collected
+
+
+def extract_from_input(text: str) -> list[dict]:
+    """URL 또는 GA코드 하나를 받아 상품 목록을 반환한다.
+
+    - 첫 번째 항목의 source_url에만 원본 입력값을 기록한다.
+    - 인식 불가 입력은 오류 행 하나를 반환한다.
+    """
+    source = text.strip()
+    url_type = detect_url_type(source)
+
+    try:
+        if url_type == "ga_code":
+            items = [fetch_product(source.upper())]
+        elif url_type == "product":
+            items = [fetch_product(extract_ga_code(source))]
+        elif url_type == "event":
+            plndp_no = parse_qs(urlparse(source).query).get("plndpNo", [""])[0]
+            items = fetch_event(plndp_no)
+        elif url_type == "search":
+            query = parse_qs(urlparse(source).query).get("query", [""])[0]
+            items = fetch_search(query)
+        else:
+            return [{
+                "product_code": "❌ 인식불가",
+                "product_name": source,
+                "main_image_url": "",
+                "product_url": "",
+                "source_url": source,
+            }]
+    except Exception as e:
+        return [{
+            "product_code": "❌ 응답없음",
+            "product_name": str(e),
+            "main_image_url": "",
+            "product_url": "",
+            "source_url": source,
+        }]
+
+    # source_url은 첫 번째 항목에만
+    if items:
+        items[0]["source_url"] = source
+    return items

@@ -101,3 +101,30 @@ def test_fetch_event_item_values():
     item = results[0]
     assert item["product_code"].startswith("GA")
     assert item["source_url"] == ""
+
+
+from scraper import extract_from_input
+
+def test_extract_from_ga_code():
+    results = extract_from_input("GA240423305")
+    assert len(results) == 1
+    assert results[0]["product_code"] == "GA240423305"
+    assert results[0]["source_url"] == "GA240423305"  # 첫 번째 항목에만 source_url
+
+def test_extract_from_product_url():
+    url = "https://global.oliveyoung.com/product/detail?prdtNo=GA240423305"
+    results = extract_from_input(url)
+    assert len(results) == 1
+    assert results[0]["source_url"] == url
+
+def test_extract_from_event_url():
+    url = "https://global.oliveyoung.com/event/planning?plndpNo=2353"
+    results = extract_from_input(url)
+    assert len(results) > 1  # 기획전은 다건
+    assert results[0]["source_url"] == url
+    assert results[1]["source_url"] == ""  # 두 번째부터는 빈 문자열
+
+def test_extract_unknown_input():
+    results = extract_from_input("https://example.com/unknown")
+    assert len(results) == 1
+    assert results[0]["product_code"] == "❌ 인식불가"
