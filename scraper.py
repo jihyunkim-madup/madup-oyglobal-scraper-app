@@ -100,3 +100,59 @@ def fetch_event(plndp_no: str) -> list[dict]:
             "source_url": "",
         })
     return result
+
+
+def fetch_search(query: str, max_results: int = 100) -> list[dict]:
+    """검색어로 상품 목록을 조회한다. max_results개까지 수집."""
+    SEARCH_URL = "https://global.oliveyoung.com/display/search/product-list"
+    ROWS_PER_PAGE = min(max_results, 24)
+    collected = []
+    page = 1
+
+    while len(collected) < max_results:
+        payload = {
+            "query": query,
+            "sort": "10",
+            "pageNum": page,
+            "rowsPerPage": ROWS_PER_PAGE,
+            "brandNoList": [],
+            "ctgrNoList": [],
+            "eventSlprcDscntRt": [],
+            "reviewScore": [],
+            "attrValNoList": {},
+        }
+        resp = requests.post(
+            SEARCH_URL,
+            json=payload,
+            headers=_HEADERS,
+            timeout=15,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+
+        hits = data.get("search", {}).get("hits", {})
+        total = hits.get("found", 0)
+        hit_list = hits.get("hit", [])
+
+        if not hit_list:
+            break
+
+        for item in hit_list:
+            fields = item.get("fields", {})
+            ga_code = fields.get("prdtNo", "")
+            img_path = fields.get("imagePath", "")
+            collected.append({
+                "product_code": ga_code,
+                "product_name": fields.get("prdtName", ""),
+                "main_image_url": f"{CDN_BASE}{img_path}" if img_path else "",
+                "product_url": f"https://global.oliveyoung.com/product/detail?prdtNo={ga_code}",
+                "source_url": "",
+            })
+            if len(collected) >= max_results:
+                break
+
+        if len(collected) >= total or total == 0:
+            break
+        page += 1
+
+    return collected
