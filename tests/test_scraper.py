@@ -60,3 +60,24 @@ def test_fetch_product_values():
     assert result["main_image_url"].startswith("https://")
     assert "prdtNo=GA240423305" in result["product_url"]
     assert result["source_url"] == ""  # 기본값은 빈 문자열
+
+
+from scraper import fetch_event
+
+def test_fetch_event_returns_list():
+    results = fetch_event("2353")
+    assert isinstance(results, list)
+    assert len(results) > 0
+
+def test_fetch_event_item_keys():
+    results = fetch_event("2353")
+    item = results[0]
+    assert set(item.keys()) == {
+        "product_code", "product_name", "main_image_url", "product_url", "source_url"
+    }
+
+def test_fetch_event_item_values():
+    results = fetch_event("2353")
+    item = results[0]
+    assert item["product_code"].startswith("GA")
+    assert item["source_url"] == ""

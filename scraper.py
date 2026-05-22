@@ -72,3 +72,31 @@ def fetch_product(ga_code: str) -> dict:
         "product_url": f"https://global.oliveyoung.com/product/detail?prdtNo={ga_code}",
         "source_url": "",
     }
+
+
+def fetch_event(plndp_no: str) -> list[dict]:
+    """기획전 번호로 전체 상품 목록을 조회한다."""
+    form_data = (
+        f"plndpNo={plndp_no}&langCode=en&curLangCode=en"
+        f"&acesCntryCode=00&mrgnCntryCode=9999&dlvCntryCode=1230"
+    )
+    resp = requests.post(
+        "https://global.oliveyoung.com/event/read-plndp-list",
+        data=form_data,
+        headers={**_HEADERS, "Content-Type": "application/x-www-form-urlencoded"},
+        timeout=15,
+    )
+    resp.raise_for_status()
+    products = resp.json().get("result", [])
+    result = []
+    for p in products:
+        ga_code = p.get("prdtNo", "")
+        img_path = p.get("prdtImagePath", "")
+        result.append({
+            "product_code": ga_code,
+            "product_name": p.get("prdtName", ""),
+            "main_image_url": f"{CDN_BASE}{img_path}" if img_path else "",
+            "product_url": f"https://global.oliveyoung.com/product/detail?prdtNo={ga_code}",
+            "source_url": "",
+        })
+    return result
