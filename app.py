@@ -75,4 +75,28 @@ with tab_single:
         render_results(rows)
 
 with tab_multi:
-    pass  # Task 8에서 구현
+    st.subheader("여러 URL / GA코드 한 번에 입력")
+    st.caption("한 줄에 하나씩 — URL, GA코드, 기획전 URL 섞어서 입력 가능")
+    multi_input = st.text_area(
+        label="입력",
+        placeholder="GA240423305\nhttps://global.oliveyoung.com/event/planning?plndpNo=2353\nGA230101001",
+        height=200,
+        label_visibility="collapsed",
+    )
+    if st.button("전체 추출", key="btn_multi", type="primary") and multi_input.strip():
+        lines = [l.strip() for l in multi_input.strip().splitlines() if l.strip()]
+        all_rows: list[dict] = []
+        seen_codes: set[str] = set()
+
+        progress = st.progress(0, text="추출 준비 중...")
+        for i, line in enumerate(lines):
+            progress.progress((i + 1) / len(lines), text=f"처리 중 ({i+1}/{len(lines)}): {line[:50]}")
+            rows = extract_from_input(line)
+            for row in rows:
+                code = row["product_code"]
+                if code.startswith("❌") or code not in seen_codes:
+                    all_rows.append(row)
+                    if not code.startswith("❌"):
+                        seen_codes.add(code)
+        progress.empty()
+        render_results(all_rows)
