@@ -43,3 +43,20 @@ def test_extract_ga_code_fails_gracefully():
 
 def test_detect_url_type_with_whitespace():
     assert detect_url_type("  GA240423305  ") == "ga_code"
+
+
+from scraper import fetch_product
+
+def test_fetch_product_returns_correct_keys():
+    result = fetch_product("GA240423305")
+    assert set(result.keys()) == {
+        "product_code", "product_name", "main_image_url", "product_url", "source_url"
+    }
+
+def test_fetch_product_values():
+    result = fetch_product("GA240423305")
+    assert result["product_code"] == "GA240423305"
+    assert len(result["product_name"]) > 0
+    assert result["main_image_url"].startswith("https://")
+    assert "prdtNo=GA240423305" in result["product_url"]
+    assert result["source_url"] == ""  # 기본값은 빈 문자열
