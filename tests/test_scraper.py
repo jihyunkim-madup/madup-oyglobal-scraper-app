@@ -36,3 +36,10 @@ def test_extract_ga_code_from_url():
     assert extract_ga_code(
         "https://global.oliveyoung.com/product/detail?prdtNo=GA240423305"
     ) == "GA240423305"
+
+def test_extract_ga_code_fails_gracefully():
+    assert extract_ga_code("https://example.com/no-ga-code") == ""
+    assert extract_ga_code("not-a-url") == ""
+
+def test_detect_url_type_with_whitespace():
+    assert detect_url_type("  GA240423305  ") == "ga_code"

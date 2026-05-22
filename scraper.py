@@ -1,6 +1,5 @@
 # scraper.py
 import re
-import requests
 from urllib.parse import urlparse, parse_qs
 
 CDN_BASE = "https://cdn-image.oliveyoung.com/"
@@ -39,7 +38,10 @@ def detect_url_type(text: str) -> str:
 
 
 def extract_ga_code(text: str) -> str:
-    """URL 또는 GA코드 문자열에서 GA코드만 추출한다."""
+    """URL 또는 GA코드 문자열에서 GA코드만 추출한다.
+
+    GA코드를 찾지 못하면 빈 문자열("")을 반환한다.
+    """
     s = text.strip()
     if re.match(r'^GA\d{9}$', s, re.IGNORECASE):
         return s.upper()
@@ -48,4 +50,4 @@ def extract_ga_code(text: str) -> str:
     if "prdtNo" in qs:
         return qs["prdtNo"][0]
     m = re.search(r'(GA\d{9})', s, re.IGNORECASE)
-    return m.group(1).upper() if m else s
+    return m.group(1).upper() if m else ""
